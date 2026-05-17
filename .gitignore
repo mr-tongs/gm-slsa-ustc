@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Demo and Testing artifacts
+tests/demo_project/*.exe
+tests/demo_project/*.out
+tests/demo_project/provenance.json
+artifact_repo/
+
+# Mock key files (for demo only, shouldn't commit real keys if any)
+*.pem
+
+# Python Virtual Environments
+venv/
+env/
+.env/
