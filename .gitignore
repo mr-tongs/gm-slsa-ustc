@@ -16,6 +16,26 @@ artifact_repo/
 # Mock key files (for demo only, shouldn't commit real keys if any)
 *.pem
 
+# Generated cryptographic keys (never commit private keys)
+crypto/keys/*.hex
+crypto/keys/*.key
+
+# Attack simulation generated/intermediate files
+tests/attack-sim/logs/
+tests/attack-sim/artifacts/
+tests/attack-sim/source_repo/
+
+# Design report LaTeX build artifacts (source tracked, build output not)
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.synctex.gz
+report/*.fls
+report/*.fdb_latexmk
+report/*.pdf
+report/
+
 # Python Virtual Environments
 venv/
 env/

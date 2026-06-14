@@ -1,0 +1,9 @@
+SAFETY NOTICE
+
+This simulation is FOR EDUCATIONAL PURPOSES and designed to run locally inside Docker containers.
+Do NOT run it on production hosts or publish tampered artifacts.
+
+The simulated 'attacker' performs only file operations (append a marker and alter JSON). No remote
+exploits, no network scanning, no persistent malware are created by these scripts.
+
+Read the README.md before running.

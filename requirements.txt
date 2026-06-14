@@ -1,0 +1,2 @@
+# Runtime dependencies
+gmssl==3.2.2

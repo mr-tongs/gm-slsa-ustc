@@ -1,13 +1,16 @@
 import json
 import base64
+import os
+from crypto.sm_signer import ensure_keypair, sign_bytes
 
-# TODO: 替换为SM2签名的实际实现，目前只是一个模拟函数
-def sm2_sign_mock(pae_bytes, private_key="mock_key.pem"):
-    """
-    Sign the PAE bytes using SM2 with the given private key.
-    """
-    dummy_sig = b"DUMMY_SM2_SIG_FOR_" + base64.b64encode(pae_bytes[:15])
-    return dummy_sig
+# key paths for demo; integrators should provide secure key management
+_KEY_DIR = os.path.join(os.path.dirname(__file__), "..", "crypto", "keys")
+_PRIV_KEY = os.path.abspath(os.path.join(_KEY_DIR, "private_key.hex"))
+_PUB_KEY = os.path.abspath(os.path.join(_KEY_DIR, "public_key.hex"))
+
+def _ensure_keys():
+    os.makedirs(_KEY_DIR, exist_ok=True)
+    ensure_keypair(_PRIV_KEY, _PUB_KEY)
 
 def create_dsse_pae(payload_type_bytes, payload_bytes):
     """
@@ -58,7 +61,9 @@ def generate_dsse_envelope(build_info, builder_id="Trust-GM-Builder-01"):
 
     pae_bytes = create_dsse_pae(payload_type_bytes, payload_bytes)
     
-    sig_bytes = sm2_sign_mock(pae_bytes)
+    # ensure keypair exists and sign
+    _ensure_keys()
+    sig_bytes = sign_bytes(pae_bytes, _PRIV_KEY)
 
     envelope = {
         "payloadType": payload_type_bytes.decode('utf-8'),
@@ -66,7 +71,7 @@ def generate_dsse_envelope(build_info, builder_id="Trust-GM-Builder-01"):
         "payload": base64.b64encode(payload_bytes).decode('utf-8'),
         "signatures": [
             {
-                "keyid": "builder-sm2-pubkey-01",
+                "keyid": _PUB_KEY,
                 "sig": base64.b64encode(sig_bytes).decode('utf-8')
             }
         ]

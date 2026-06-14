@@ -1,24 +1,8 @@
 import json
 import base64
 import os
-import hashlib
-
-# TODO: 替换为 core.crypto 中的国密 SM2 验签与 SM3 哈希算法
-def sm2_verify_mock(pae_bytes, signature_bytes, public_key="mock_key.pem"):
-    """
-    Verify the SM2 signature against the PAE bytes.
-    """
-    expected_prefix = b"DUMMY_SM2_SIG_FOR_" + base64.b64encode(pae_bytes[:15])
-    return signature_bytes == expected_prefix
-
-def sm3_hash_mock(file_path):
-    if not os.path.exists(file_path):
-        return ""
-    h = hashlib.sha256()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            h.update(chunk)
-    return h.hexdigest()
+from crypto.sm_hasher import sm3_file
+from crypto.sm_signer import verify_bytes, load_public_key
 
 def create_dsse_pae(payload_type_bytes, payload_bytes):
     """
@@ -55,8 +39,16 @@ def verify_provenance(artifact_path, provenance_path):
     
     sig_val_b64 = signatures[0]["sig"]
     sig_bytes = base64.b64decode(sig_val_b64)
-    
-    is_valid_sig = sm2_verify_mock(pae_bytes, sig_bytes)
+
+    # attempt to use provided keyid as path to public key; otherwise integrator should supply path
+    keyid = signatures[0].get("keyid")
+    if keyid and os.path.exists(keyid):
+        pubkey_path = keyid
+    else:
+        # fallback to a default expected public key location inside crypto/keys
+        pubkey_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "crypto", "keys", "public_key.hex"))
+
+    is_valid_sig = verify_bytes(pae_bytes, sig_bytes, pubkey_path)
     if not is_valid_sig:
         raise ValueError("Signature verification failed. The provenance may have been tampered with.")
         
@@ -67,7 +59,7 @@ def verify_provenance(artifact_path, provenance_path):
         raise ValueError("No subject found in the provenance.")
         
     expected_hash = subjects[0].get("digest", {}).get("sm3", "")
-    actual_hash = sm3_hash_mock(artifact_path)
+    actual_hash = sm3_file(artifact_path)
     
     if actual_hash != expected_hash:
         raise ValueError(f"Artifact hash mismatch! Expected: {expected_hash}, Actual: {actual_hash}")

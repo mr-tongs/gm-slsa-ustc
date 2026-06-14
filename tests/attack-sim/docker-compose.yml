@@ -1,0 +1,48 @@
+services:
+  source:
+    build: .
+    volumes:
+      - C:\Users\93785\Desktop\projects\gm-slsa-ustc:/work:rw
+    networks:
+      - simnet
+    command: bash /work/attack-sim/source/build_source.sh
+
+  build:
+    build: .
+    volumes:
+      - C:\Users\93785\Desktop\projects\gm-slsa-ustc:/work:rw
+    depends_on:
+      source:
+        condition: service_completed_successfully
+    networks:
+      - simnet
+    command: bash /work/attack-sim/build/run_build.sh
+
+  attacker:
+    build: .
+    volumes:
+      - C:\Users\93785\Desktop\projects\gm-slsa-ustc:/work:rw
+    depends_on:
+      build:
+        condition: service_completed_successfully
+    networks:
+      - simnet
+    command: bash /work/attack-sim/build/attacker_hook.sh
+
+  user:
+    build: .
+    volumes:
+      - C:\Users\93785\Desktop\projects\gm-slsa-ustc:/work:rw
+    depends_on:
+      attacker:
+        condition: service_completed_successfully
+    networks:
+      - simnet
+    command: bash /work/attack-sim/user/run_user.sh
+
+volumes:
+  project_mount: {}
+
+networks:
+  simnet:
+    driver: bridge
